@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Kızma Birader - Orijinal Tahta Tipi (4 Kişilik)</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --red: #e63946;
+      --green: #2a9d8f;
+      --yellow: #e9c46a;
+      --blue: #1d3557;
+      --text: #f0f6fc;
+      --border: #30363d;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    .main-layout {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      width: 100%;
+      max-width: 950px;
+    }
+
+    @media (min-width: 800px) {
+      .main-layout {
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: center;
+      }
+    }
+
+    /* Görseldeki Birebir Tahta Tasarımı */
+    .ludo-board {
+      position: relative;
+      width: 92vw;
+      height: 92vw;
+      max-width: 520px;
+      max-height: 520px;
+      background: #ffffff;
+      border: 6px solid #111;
+      border-radius: 8px;
+      display: grid;
+      grid-template-columns: repeat(15, 1fr);
+      grid-template-rows: repeat(15, 1fr);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.7);
+    }
+
+    .cell {
+      border: 1px solid #222;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      font-size: 14px;
+    }
+
+    /* 4 Köşe Büyük Evler */
+    .corner-home {
+      border: 2px solid #000;
+      padding: 12%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .home-inner {
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      border: 2px solid #000;
+      border-radius: 6px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      padding: 8%;
+      gap: 10%;
+      align-items: center;
+      justify-items: center;
+    }
+
+    .slot-circle {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid #222;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Renk Kodlamaları (Görseldeki Gibi) */
+    .bg-green { background: #22c55e !important; }
+    .bg-yellow { background: #eab308 !important; }
+    .bg-red { background: #ef4444 !important; }
+    .bg-blue { background: #2563eb !important; }
+
+    /* Orta Bitiş Alanı (4 Üçgen) */
+    .center-triangles {
+      grid-column: 7 / 10;
+      grid-row: 7 / 10;
+      position: relative;
+      background: #fff;
+      border: 2px solid #000;
+      overflow: hidden;
+    }
+
+    .tri {
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-style: solid;
+    }
+
+    .tri-top {
+      top: 0; left: 0;
+      border-width: 40px 40px 0 40px;
+      border-color: #22c55e transparent transparent transparent;
+      width: 100%;
+    }
+    .tri-right {
+      top: 0; right: 0;
+      border-width: 40px 40px 40px 0;
+      border-color: transparent #eab308 transparent transparent;
+      height: 100%;
+    }
+    .tri-bottom {
+      bottom: 0; left: 0;
+      border-width: 0 40px 40px 40px;
+      border-color: transparent transparent #ef4444 transparent;
+      width: 100%;
+    }
+    .tri-left {
+      top: 0; left: 0;
+      border-width: 40px 0 40px 40px;
+      border-color: transparent transparent transparent #2563eb;
+      height: 100%;
+    }
+
+    /* Özel Kareler & Yıldızlar */
+    .star-cell::after {
+      content: '⭐';
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .arrow-cell {
+      font-weight: 900;
+      font-size: 16px;
+      color: #000;
+    }
+
+    /* Piyonlar */
+    .pawn {
+      width: 80%;
+      height: 80%;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.6);
+      cursor: pointer;
+      z-index: 10;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .pawn-green { background: radial-gradient(circle at 30% 30%, #4ade80, #15803d); }
+    .pawn-yellow { background: radial-gradient(circle at 30% 30%, #fde047, #ca8a04); }
+    .pawn-red { background: radial-gradient(circle at 30% 30%, #fca5a5, #b91c1c); }
+    .pawn-blue { background: radial-gradient(circle at 30% 30%, #93c5fd, #1d4ed8); }
+
+    .pawn.selectable {
+      animation: pulsePawn 0.7s infinite alternate;
+      box-shadow: 0 0 10px #fff, 0 0 15px #f59e0b;
+    }
+
+    @keyframes pulsePawn {
+      0% { transform: scale(0.9); }
+      100% { transform: scale(1.25); }
+    }
+
+    /* Yan Kontrol Paneli */
+    .side-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      width: 92vw;
+      max-width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    .game-title {
+      font-size: 20px;
+      font-weight: 800;
+      text-align: center;
+      color: var(--yellow);
+    }
+
+    .current-turn-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.3);
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .turn-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+    }
+
+    .dice-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin: 10px 0;
+    }
+
+    .dice-btn {
+      width: 65px;
+      height: 65px;
+      background: #ffffff;
+      color: #000;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 900;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+      cursor: pointer;
+    }
+
+    .btn-roll {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: #22c55e;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+    }
+
+    .btn-roll:disabled {
+      background: #475569;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .log-box {
+      font-size: 13px;
+      color: #94a3b8;
+      text-align: center;
+      min-height: 40px;
+      padding: 8px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+    }
+
+    /* Modal */
+    .win-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      z-index: 100;
+    }
+
+    .win-modal.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--card-bg);
+      border: 2px solid var(--yellow);
+      border-radius: 20px;
+      padding: 30px;
+      text-align: center;
+      max-width: 320px;
+      width: 90%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-layout">
+    <!-- Resimdeki Birebir Tahta -->
+    <div class="ludo-board" id="board">
+      <!-- 4 Köşe Ev Alanları -->
+      <div class="corner-home bg-green" style="grid-column: 1/7; grid-row: 1/7;">
+        <div class="home-inner">
+          <div class="slot-circle bg-green" id="slot-green-0"></div>
+          <div class="slot-circle bg-green" id="slot-green-1"></div>
+          <div class="slot-circle bg-green" id="slot-green-2"></div>
+          <div class="slot-circle bg-green" id="slot-green-3"></div>
+        </div>
+      </div>
+
+      <div class="corner-home bg-yellow" style="grid-column: 10/16; grid-row: 1/7;">
+        <div class="home-inner">
+          <div class="slot-circle bg-yellow" id="slot-yellow-0"></div>
+          <div class="slot-circle bg-yellow" id="slot-yellow-1"></div>
+          <div class="slot-circle bg-yellow" id="slot-yellow-2"></div>
+          <div class="slot-circle bg-yellow" id="slot-yellow-3"></div>
+        </div>
+      </div>
+
+      <div class="corner-home bg-red" style="grid-column: 1/7; grid-row: 10/16;">
+        <div class="home-inner">
+          <div class="slot-circle bg-red" id="slot-red-0"></div>
+          <div class="slot-circle bg-red" id="slot-red-1"></div>
+          <div class="slot-circle bg-red" id="slot-red-2"></div>
+          <div class="slot-circle bg-red" id="slot-red-3"></div>
+        </div>
+      </div>
+
+      <div class="corner-home bg-blue" style="grid-column: 10/16; grid-row: 10/16;">
+        <div class="home-inner">
+          <div class="slot-circle bg-blue" id="slot-blue-0"></div>
+          <div class="slot-circle bg-blue" id="slot-blue-1"></div>
+          <div class="slot-circle bg-blue" id="slot-blue-2"></div>
+          <div class="slot-circle bg-blue" id="slot-blue-3"></div>
+        </div>
+      </div>
+
+      <!-- Merkez Hedef Bölgesi (4 Renk Üçgen) -->
+      <div class="center-triangles">
+        <div class="tri tri-top"></div>
+        <div class="tri tri-right"></div>
+        <div class="tri tri-bottom"></div>
+        <div class="tri tri-left"></div>
+      </div>
+    </div>
+
+    <!-- Kontrol Paneli -->
+    <div class="side-panel">
+      <h1 class="game-title">🎲 Kızma Birader</h1>
+
+      <div class="current-turn-box">
+        <div class="turn-dot" id="turn-dot" style="background: #22c55e;"></div>
+        <span id="turn-text">Sıra: Yeşil Takım</span>
+      </div>
+
+      <div class="dice-container">
+        <div class="dice-btn" id="dice-view">🎲</div>
+        <button id="btn-roll" class="btn-roll">Zar At</button>
+      </div>
+
+      <div class="log-box" id="log-box">Oyun başladı! Yeşil takım zar atsın.</div>
+    </div>
+  </div>
+
+  <!-- Kazanma Modalı -->
+  <div class="win-modal" id="win-modal">
+    <div class="modal-card">
+      <h2 style="color: var(--yellow); margin-bottom: 10px;">TEBRİKLER! 🎉</h2>
+      <p id="win-msg" style="font-size: 18px; margin-bottom: 20px;"></p>
+      <button class="btn-roll" onclick="location.reload()">Yeniden Başlat 🔄</button>
+    </div>
+  </div>
+
+  <script>
+    // Audio Context (Sesler)
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new AudioCtx();
+    }
+
+    function playSound(type) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+
+      if (type === 'dice') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(160, now);
+        osc.frequency.exponentialRampToValueAtTime(50, now + 0.15);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      } else if (type === 'move') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(550, now + 0.1);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      } else if (type === 'eat') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(450, now);
+        osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      }
+    }
+
+    // Tahta Grid Koordinat Haritası (15x15 Kareler)
+    const boardEl = document.getElementById('board');
+    const cellsMap = {};
+
+    // Kareleri Tahtaya Yerleştirme
+    function buildBoardGrid() {
+      // Yeşil Yol (Sol Orta)
+      createCell(7, 1, 'bg-green arrow-cell', '➡');
+      for(let c=2; c<=6; c++) createCell(8, c, 'bg-green'); // Yeşil Hedef Yolu
+      createCell(9, 3, 'star-cell');
+
+      // Sarı Yol (Üst Orta)
+      createCell(1, 9, 'bg-yellow arrow-cell', '⬇');
+      for(let r=2; r<=6; r++) createCell(r, 8, 'bg-yellow'); // Sarı Hedef Yolu
+      createCell(3, 7, 'star-cell');
+
+      // Kırmızı Yol (Alt Orta)
+      createCell(15, 7, 'bg-red arrow-cell', '⬆');
+      for(let r=10; r<=14; r++) createCell(r, 8, 'bg-red'); // Kırmızı Hedef Yolu
+      createCell(13, 9, 'star-cell');
+
+      // Mavi Yol (Sağ Orta)
+      createCell(9, 15, 'bg-blue arrow-cell', '⬅');
+      for(let c=10; c<=14; c++) createCell(8, c, 'bg-blue'); // Mavi Hedef Yolu
+      createCell(7, 13, 'star-cell');
+
+      // Beyaz Kareler Fill
+      const paths = [
+        // Sol Yol
+        [6,1],[6,2],[6,3],[6,4],[6,5],[6,6],
+        [7,6],
+        [8,1],
+        [9,1],[9,2],[9,4],[9,5],[9,6],
+        // Üst Yol
+        [1,7],[2,7],[4,7],[5,7],[6,7],
+        [1,8],
+        [2,9],[3,9],[4,9],[5,9],[6,9],
+        [7,9],
+        // Alt Yol
+        [9,7],
+        [10,7],[11,7],[12,7],[13,7],[14,7],
+        [15,8],
+        [10,9],[11,9],[12,9],[14,9],[15,9],
+        // Sağ Yol
+        [7,10],[7,11],[7,12],[7,14],[7,15],
+        [8,15],
+        [9,10],[9,11],[9,12],[9,13],[9,14],[9,15]
+      ];
+
+      paths.forEach(([r, c]) => {
+        if(!cellsMap[`${r}-${c}`]) createCell(r, c, '');
+      });
+    }
+
+    function createCell(r, c, className, text='') {
+      if(cellsMap[`${r}-${c}`]) return;
+      const cell = document.createElement('div');
+      cell.className = `cell ${className}`;
+      cell.style.gridRow = r;
+      cell.style.gridColumn = c;
+      if(text) cell.innerText = text;
+      boardEl.appendChild(cell);
+      cellsMap[`${r}-${c}`] = cell;
+    }
+
+    // Oyun Mantığı
+    const teams = ['green', 'yellow', 'blue', 'red'];
+    const teamNames = { green: 'Yeşil', yellow: 'Sarı', blue: 'Mavi', red: 'Kırmızı' };
+    const teamColors = { green: '#22c55e', yellow: '#eab308', blue: '#2563eb', red: '#ef4444' };
+
+    let turnIdx = 0;
+    let diceVal = 0;
+    let hasRolled = false;
+
+    const pawns = {
+      green: [{pos:-1},{pos:-1},{pos:-1},{pos:-1}],
+      yellow: [{pos:-1},{pos:-1},{pos:-1},{pos:-1}],
+      blue: [{pos:-1},{pos:-1},{pos:-1},{pos:-1}],
+      red: [{pos:-1},{pos:-1},{pos:-1},{pos:-1}]
+    };
+
+    // Piyon Öğelerini Oluştur
+    function initPawns() {
+      teams.forEach(color => {
+        for(let i=0; i<4; i++) {
+          const slot = document.getElementById(`slot-${color}-${i}`);
+          const pEl = document.createElement('div');
+          pEl.className = `pawn pawn-${color}`;
+          pEl.id = `pawn-${color}-${i}`;
+          pEl.onclick = () => onPawnClick(color, i);
+          slot.appendChild(pEl);
+        }
+      });
+    }
+
+    const btnRoll = document.getElementById('btn-roll');
+    const diceView = document.getElementById('dice-view');
+    const turnDot = document.getElementById('turn-dot');
+    const turnText = document.getElementById('turn-text');
+    const logBox = document.getElementById('log-box');
+
+    btnRoll.onclick = () => {
+      if (hasRolled) return;
+      initAudio();
+      playSound('dice');
+
+      btnRoll.disabled = true;
+      let cnt = 0;
+      const timer = setInterval(() => {
+        diceView.innerText = Math.floor(Math.random() * 6) + 1;
+        cnt++;
+        if (cnt > 10) {
+          clearInterval(timer);
+          diceVal = Math.floor(Math.random() * 6) + 1;
+          diceView.innerText = diceVal;
+          hasRolled = true;
+          handleTurnLogic();
+        }
+      }, 50);
+    };
+
+    function handleTurnLogic() {
+      const color = teams[turnIdx];
+      const movables = getMovablePawns(color, diceVal);
+
+      if (movables.length === 0) {
+        logBox.innerText = `${teamNames[color]} takımının hamlesi yok! Sıra geçiyor.`;
+        setTimeout(nextTurn, 1200);
+      } else {
+        logBox.innerText = `${teamNames[color]} takımı oynamak istediği piyonu seçsin.`;
+        movables.forEach(i => {
+          document.getElementById(`pawn-${color}-${i}`).classList.add('selectable');
+        });
+      }
+    }
+
+    function getMovablePawns(color, roll) {
+      const list = [];
+      pawns[color].forEach((p, idx) => {
+        if (p.pos === -1 && roll === 6) list.push(idx);
+        else if (p.pos >= 0 && p.pos + roll <= 56) list.push(idx);
+      });
+      return list;
+    }
+
+    function onPawnClick(color, idx) {
+      if (!hasRolled || teams[turnIdx] !== color) return;
+
+      const movables = getMovablePawns(color, diceVal);
+      if (!movables.includes(idx)) return;
+
+      document.querySelectorAll('.pawn').forEach(p => p.classList.remove('selectable'));
+      playSound('move');
+
+      const p = pawns[color][idx];
+      if (p.pos === -1 && diceVal === 6) {
+        p.pos = 0;
+        logBox.innerText = `${teamNames[color]} piyonu sahaya çıktı!`;
+      } else {
+        p.pos += diceVal;
+        logBox.innerText = `${teamNames[color]} piyonu ${diceVal} adım ilerledi.`;
+      }
+
+      if (diceVal === 6) {
+        logBox.innerText += ' (6 attığın için tekrar zar atıyorsun!)';
+        hasRolled = false;
+        btnRoll.disabled = false;
+      } else {
+        setTimeout(nextTurn, 1000);
+      }
+    }
+
+    function nextTurn() {
+      document.querySelectorAll('.pawn').forEach(p => p.classList.remove('selectable'));
+      turnIdx = (turnIdx + 1) % 4;
+      hasRolled = false;
+      btnRoll.disabled = false;
+
+      const nextColor = teams[turnIdx];
+      turnDot.style.background = teamColors[nextColor];
+      turnText.innerText = `Sıra: ${teamNames[nextColor]} Takım`;
+      logBox.innerText = `Sıra ${teamNames[nextColor]} takımında. Zar atın!`;
+    }
+
+    buildBoardGrid();
+    initPawns();
+  </script>
+</body>
+</html>
